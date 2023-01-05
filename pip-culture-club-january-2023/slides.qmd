@@ -1,0 +1,36 @@
+---
+title: "Hello wurlde"
+format: 
+  revealjs:
+    theme: [default, custom.scss]
+    logo: "images/pip-logo.jpeg"
+    footer: "Policy in Practice 2023 - Culture Club - Data Team"
+    embed-resources: true
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+```{r}
+1 + 1
+```
+
+## Second
+
+<!--# beep -->
+
+::: incremental
+-   I say
+-   I said
+:::
+
+::: columns
+::: {.column .fragment width="50%"}
+Yoooo sup
+:::
+
+::: {.column .fragment width="50%"}
+Suuuuuup dude
+:::
+:::
