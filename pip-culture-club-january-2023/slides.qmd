@@ -6,6 +6,7 @@ format:
     logo: "images/pip-logo.jpeg"
     footer: "Policy in Practice 2023 - Culture Club - Data Team"
     embed-resources: true
+    link-external-icon: true
 ---
 
 ## Quarto
@@ -33,4 +34,107 @@ Yoooo sup
 ::: {.column .fragment width="50%"}
 Suuuuuup dude
 :::
+:::
+
+## Employee reviews
+
+### Blind
+
+- Scraped the title content of 900 Twitter employee reviews posted on [Blind](https://www.teamblind.com/)
+- Performed a simple **sentiment analysis**
+  - How positive or negative are the words being used
+- Plotted alongside the median score
+  - Where 1 ⭐️ = poor and 5 ⭐️ = great
+
+## Plot
+
+```{r}
+library(magrittr)
+library(ggplot2)
+
+pages <- file.path("pages", list.files(path = "pages", pattern = "*.html")) %>% 
+  purrr::map(rvest::read_html)
+
+reviews <- tibble::tibble(
+  rating = purrr::map(
+    pages,
+    ~ rvest::html_elements(., ".num") %>% 
+      rvest::html_text2() %>% 
+      purrr::discard(. == "(1,145 reviews)") %>% 
+      stringr::str_remove("Rating Score") %>% 
+      as.integer()
+  ),
+  text = purrr::map(
+    pages, 
+    ~ rvest::html_elements(., ".rvtit") %>% 
+      rvest::html_text2() %>% 
+      stringr::str_remove_all(., "”|“")
+  ),
+  date = purrr::map(
+    pages, 
+    ~ rvest::html_elements(., ".auth") %>% 
+      rvest::html_text2() %>% 
+      stringr::word(., -1, sep="- ") %>% 
+      lubridate::mdy()
+  )
+) %>% 
+  tibble::rowid_to_column(var = "page") %>% 
+  tidyr::unnest(cols = c(rating, text, date)) %>% 
+  tibble::rowid_to_column(var = "review_id")
+
+tidy_reviews <- reviews %>% 
+  tidytext::unnest_tokens(word, text)
+
+bing_sentiments <- tidytext::get_sentiments("bing") %>% 
+  tibble::add_row(word = "wlb", sentiment = "positive")
+
+tidy_reviews <- tidy_reviews %>% 
+  dplyr::anti_join(dplyr::filter(tidytext::stop_words, lexicon == "snowball"), by = "word") %>% 
+  dplyr::inner_join(bing_sentiments, by = "word") %>% 
+  dplyr::mutate(month = lubridate::floor_date(date, unit = "months"))
+
+review_sentiments <- tidy_reviews %>% 
+  dplyr::group_by(month) %>% 
+  dplyr::summarise(median_rating = median(rating),
+                   positive = length(sentiment[sentiment == "positive"]),
+                   negative = length(sentiment[sentiment == "negative"]),
+                   polarity = positive / negative)
+
+myplot <- dplyr::left_join(tidy_reviews, review_sentiments, by = "month") %>%
+  ggplot() +
+  geom_line(aes(x = month, y = polarity), colour = "#e28743", linewidth = 1) +
+  geom_line(aes(x = month, y = median_rating), colour = "#063970", linewidth = 1) +
+  theme_minimal() +
+  scale_y_continuous(name = "Score", n.breaks = 12) +
+  scale_x_date(name = "Month", date_breaks = "1 months", date_labels = "%b %y") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+  
+plotly::ggplotly(myplot)
+```
+
+## Data {.scrollable}
+
+```{r}
+dplyr::select(reviews, c(rating, text, date)) %>% 
+  reactable::reactable(
+    showPageInfo = FALSE, 
+    searchable = TRUE,
+    defaultPageSize = 500,
+    defaultColDef = reactable::colDef(
+      align = "center",
+      headerStyle = list(
+        background = "#98ca45", 
+        color = "#ffffff"
+      )
+    ),
+    columns = list(
+      # text = reactable::colDef(minWidth = 250),
+      rating = reactable::colDef(maxWidth = 180),
+      date = reactable::colDef(maxWidth = 200)
+    ),
+    bordered = TRUE,
+    highlight = TRUE
+  )
+```
+
 :::
