@@ -8,6 +8,7 @@ $pip-green: #008849;
 $presentation-heading-color: $pip-green;
 $presentation-h1-font-size: 3em;
 $link-color: $pip-green;
+$code-block-font-size: 0.3em !important;
 
 /*-- scss:rules --*/
 
@@ -26,4 +27,15 @@ $link-color: $pip-green;
 
 .big {
   font-size: 2em;
+}
+
+.reveal pre.sourceCode code {
+  max-height: 450px !important;
+}
+
+details > summary {
+  color: $pip-green;
+  font-size: 0.5em;
+  border-radius: 0px !important;
+  margin: 0px !important;
 }
