@@ -1,21 +1,36 @@
 ---
-title: "Hello wurlde"
 format: 
   revealjs:
     theme: [default, custom.scss]
-    logo: "images/pip-logo.jpeg"
     footer: "Policy in Practice 2023 - Culture Club - Data Team"
-    embed-resources: true
+    embed-resources: false
     link-external-icon: true
+    chalkboard: true
 ---
 
-## Quarto
+##  {background-color="#008849" background-image="images/title-slide-bg.png" background-position="left 0% bottom 0%" background-size="62% auto"}
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+![](images/twitter-green.webp){.absolute top=33% right=0 width="40%" height="auto"}
 
-```{r}
-1 + 1
-```
+::: {.absolute bottom=35% left=1.5%}
+Policy in Practice
+:::
+
+::: {.absolute bottom=15% right=0}
+[Culture Club]{.big}
+:::
+
+::: {.absolute bottom=8% right=0}
+Weds 25th Jan 2023
+:::
+
+::: footer
+
+:::
+
+## 
+
+{{< video https://youtu.be/u_TwPhmFZ8E width="100%" height="85%" >}}
 
 ## Second
 
@@ -40,13 +55,13 @@ Suuuuuup dude
 
 ### Blind
 
-- Scraped the title content of 900 Twitter employee reviews posted on [Blind](https://www.teamblind.com/)
-- Performed a simple **sentiment analysis**
-  - How positive or negative are the words being used
-- Plotted alongside the median score
-  - Where 1 ⭐️ = poor and 5 ⭐️ = great
+-   Scraped the title content of 900 Twitter employee reviews posted on [Blind](https://www.teamblind.com/)
+-   Performed a simple **sentiment analysis**
+    -   How positive or negative are the words being used
+-   Plotted alongside the median score
+    -   Where 1 ⭐️ = poor and 5 ⭐️ = great
 
-## Plot
+## Plot {out.width="100%"}
 
 ```{r}
 library(magrittr)
@@ -108,12 +123,13 @@ myplot <- dplyr::left_join(tidy_reviews, review_sentiments, by = "month") %>%
   scale_y_continuous(name = "Score", n.breaks = 12) +
   scale_x_date(name = "Month", date_breaks = "1 months", date_labels = "%b %y") +
   theme(axis.text.x = element_text(angle = 45, hjust=1))
-  
+
 plotly::ggplotly(myplot)
 ```
 
 ## Data {.scrollable}
 
+::: {style="font-size: 0.7em;"}
 ```{r}
 dplyr::select(reviews, c(rating, text, date)) %>% 
   reactable::reactable(
@@ -136,5 +152,4 @@ dplyr::select(reviews, c(rating, text, date)) %>%
     highlight = TRUE
   )
 ```
-
 :::
