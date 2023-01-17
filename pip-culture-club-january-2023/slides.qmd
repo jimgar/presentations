@@ -2,7 +2,7 @@
 format: 
   revealjs:
     theme: [default, custom.scss]
-    footer: "Policy in Practice 2023 - Culture Club - Data Team"
+    footer: "Data Team -- Culture Club -- Policy in Practice"
     embed-resources: false
     link-external-icon: true
     chalkboard: true
@@ -61,9 +61,15 @@ Suuuuuup dude
 -   Plotted alongside the median score
     -   Where 1 ⭐️ = poor and 5 ⭐️ = great
 
-## Plot {out.width="100%"}
+## Twitter employee satisfaction {out.width="100%"}
+
+::: {style="font-size: 0.7em; text-align: center;"}
+[Orange]{style="color: #e28743; text-decoration: underline;"} = sentiment
+[Blue]{style="color: #063970; text-decoration: underline;"} = review score
+:::
 
 ```{r}
+#| fig-align: center
 library(magrittr)
 library(ggplot2)
 
@@ -115,7 +121,7 @@ review_sentiments <- tidy_reviews %>%
                    negative = length(sentiment[sentiment == "negative"]),
                    polarity = positive / negative)
 
-myplot <- dplyr::left_join(tidy_reviews, review_sentiments, by = "month") %>%
+dplyr::left_join(tidy_reviews, review_sentiments, by = "month") %>%
   ggplot() +
   geom_line(aes(x = month, y = polarity), colour = "#e28743", linewidth = 1) +
   geom_line(aes(x = month, y = median_rating), colour = "#063970", linewidth = 1) +
@@ -123,8 +129,6 @@ myplot <- dplyr::left_join(tidy_reviews, review_sentiments, by = "month") %>%
   scale_y_continuous(name = "Score", n.breaks = 12) +
   scale_x_date(name = "Month", date_breaks = "1 months", date_labels = "%b %y") +
   theme(axis.text.x = element_text(angle = 45, hjust=1))
-
-plotly::ggplotly(myplot)
 ```
 
 ## Data {.scrollable}
