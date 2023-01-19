@@ -138,14 +138,17 @@ review_sentiments <- tidy_reviews %>%
                    polarity = positive / negative)
 
 dplyr::left_join(tidy_reviews, review_sentiments, by = "month") %>% 
+  dplyr::mutate(polarity_rescaled = scales::rescale(polarity, to = c(1, 5))) %>% 
   dplyr::filter(month > (dplyr::last(sort(unique(month))) - months(12))) %>%
   ggplot() +
-  geom_line(aes(x = month, y = polarity), colour = "#e28743", linewidth = 1) +
-  geom_line(aes(x = month, y = median_rating), colour = "#063970", linewidth = 1) +
+  geom_line(aes(x = month, y = polarity_rescaled), colour = "#e28743", linewidth = 1.2, lineend = "round") +
+  geom_line(aes(x = month, y = median_rating), colour = "#063970", linewidth = 1.2, lineend = "round") +
   theme_minimal() +
-  scale_y_continuous(name = "Score", n.breaks = 12) +
-  scale_x_date(name = "Month", date_breaks = "1 months", date_labels = "%b %y") +
-  theme(axis.text.x = element_text(angle = 45, hjust=1))
+  scale_y_continuous(name = "Score", limits = c(1, 5)) +
+  scale_x_date(name = "Month", date_breaks = "1 months", date_labels = "%b %y", minor_breaks = NULL) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_text(margin = margin(t = 10)),
+        axis.title.y = element_text(margin = margin(r = 10)))
 ```
 
 ## Data {.scrollable}
