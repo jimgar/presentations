@@ -122,8 +122,9 @@ reviews <- tibble::tibble(
 tidy_reviews <- reviews %>% 
   tidytext::unnest_tokens(word, text)
 
-bing_sentiments <- tidytext::get_sentiments("bing") %>% 
-  tibble::add_row(word = "wlb", sentiment = "positive")
+bing_sentiments <- tidytext::get_sentiments("bing") 
+# %>% 
+#   tibble::add_row(word = "wlb", sentiment = "positive")
 
 tidy_reviews <- tidy_reviews %>% 
   dplyr::anti_join(dplyr::filter(tidytext::stop_words, lexicon == "snowball"), by = "word") %>% 
