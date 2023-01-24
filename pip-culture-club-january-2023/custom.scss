@@ -29,6 +29,20 @@ $code-block-font-size: 0.3em !important;
   font-size: 2em;
 }
 
+.white {
+  color: white;
+}
+
+.bigwhite {
+  color: white;
+  font-size: 2em;
+}
+
+.hugewhite {
+  color: white;
+  font-size: 3em;
+}
+
 .reveal pre.sourceCode code {
   max-height: 450px !important;
 }

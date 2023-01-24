@@ -1,5 +1,5 @@
 # Gets web pages ready for scraping.
-# This script was run Tue 17th Jan 2023.
+# This script was run Tue 22nd Jan 2023.
 
 links <- c(paste0("https://www.teamblind.com/company/Twitter/reviews?page=", rep(1:30)))
 
