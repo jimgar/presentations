@@ -1,36 +1,264 @@
 ---
-title: "Hello wurlde"
 format: 
   revealjs:
     theme: [default, custom.scss]
-    logo: "images/pip-logo.jpeg"
-    footer: "Policy in Practice 2023 - Culture Club - Data Team"
+    footer: "Data Team -- Culture Club -- Policy in Practice"
     embed-resources: true
+    link-external-icon: true
 ---
 
-## Quarto
+##  {background-color="#008849" background-image="images/title-slide-bg.png" background-position="left 0% top 0%" background-size="45% auto"}
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+![](images/twitter-green.webp){.absolute top=20% right=0 width="60%" height="auto"}
+
+::: {.absolute bottom=20% right=0}
+[Twitter Staff Reviews]{.big}
+:::
+
+::: {.absolute bottom=15% right=0}
+Weds 25th Jan 2023
+:::
+
+::: footer
+ 
+:::
+
+## {background-image="images/musk-dress-suit.webp"}
+
+. . .
+
+::: {.absolute top=20% left=10%}
+[Media coverage]{.hugewhite}
+:::
+
+::: {.notes}
+I think it's fair to say that media coverage of the Twitter take over has been 
+very focused on Elon Musk and his behaviour.
+:::
+
+## {background-image="images/musk-with-employees.jpeg"}
+
+. . .
+
+::: {.absolute bottom=15% left=0}
+[Employee perspective?]{.bigwhite}
+:::
+
+::: {.notes}
+But in terms of the workplace, those affected most by his actions are the 
+thousands of employees. So let's take a look at what they've been saying.
+:::
+
+## Employee reviews
+
+:::: columns
+
+::: {.column width="50%"}
+![](images/blind.png){height=4.75in}
+:::
+
+::: {.column width="50%"}
+- [Blind](https://www.teamblind.com/)
+  - Glassdoor-style site where employees can post anonymous reviews
+- Collected the title content of **900 [{{< fa brands twitter title="Twitter" >}}]{style="color: #008849;"} employee reviews**
+  - Using webscraping tools in [{{< fa brands r-project title="The R programming language" >}}]{style="color: #063970;"}
+:::
+
+::::
+
+::: {.notes}
+Luckily for us there are websites, like Blind, where employees can leave 
+anonymous reviews. So I collected the title content of 900 of these using 
+webscraping tools in R, which was really fun because I had never done it before.
+:::
+
+## Sentiment analysis
+
+- SA quantifies subjective aspects of text resources, such as emotion, intent 
+- I did the most simple version
+  - How **positive** or **negative** are the words?
+  - Higher values = more positive words 😻
+- Plotted alongside the median review rating
+  - 1 ⭐️ = poor
+  - 5 ⭐️ = great
+
+::: {.notes}
+I performed sentiment analysis on the last year of reviews. SA is a way of 
+measuring subjective aspects of text, like emotions and intent. I did the most 
+simple version, which basically counts up the number of positive and negative 
+words per month. And I've plotted that alongside the median review rating, 
+which uses the classic one to five stars.
+:::
+
+## {{< fa brands twitter title="Twitter" >}} Review Sentiment and Ratings
+
+::: {style="font-size: 0.7em; text-align: center;"}
+🍊 = sentiment (positive / negative)
+🧢 = median rating
+:::
+
+::: {.notes}
+And here are the results. So, first thing, the orange line is the sentiment, 
+and the higher it goes the more positive the reviews have been. Knowing that, 
+it's then pretty obvious that the point at which Elon Musk takes over the 
+company both the sentiment AND the review scores tank, and they haven't 
+recovered as of a couple of days ago.
+
+There's also a blip in July, which is when Elon Musk tried to pull out of the 
+purchase agreement and litigation started. That's reflected in what some people 
+write regarding uncertainty about the future, and absentee senior management.
+:::
 
 ```{r}
-1 + 1
+#| fig-align: center
+#| echo: true
+#| code-fold: true
+#| fig-height: 4
+library(magrittr)
+library(ggplot2)
+
+pages <- file.path("pages", list.files(path = "pages", pattern = "*.html")) %>% 
+  purrr::map(rvest::read_html)
+
+reviews <- tibble::tibble(
+  rating = purrr::map(
+    pages,
+    ~ rvest::html_elements(., ".num") %>% 
+      rvest::html_text2() %>% 
+      purrr::discard(stringr::str_detect(., "reviews")) %>% 
+      stringr::str_remove("Rating Score") %>% 
+      as.integer()
+  ),
+  text = purrr::map(
+    pages, 
+    ~ rvest::html_elements(., ".rvtit") %>% 
+      rvest::html_text2() %>% 
+      stringr::str_remove_all(., "”|“")
+  ),
+  date = purrr::map(
+    pages, 
+    ~ rvest::html_elements(., ".auth") %>% 
+      rvest::html_text2() %>% 
+      stringr::word(., -1, sep="- ") %>% 
+      lubridate::mdy()
+  )
+) %>% 
+  tibble::rowid_to_column(var = "page") %>% 
+  tidyr::unnest(cols = c(rating, text, date)) %>% 
+  tibble::rowid_to_column(var = "review_id")
+
+tidy_reviews <- reviews %>% 
+  tidytext::unnest_tokens(word, text)
+
+bing_sentiments <- tidytext::get_sentiments("bing")
+
+tidy_reviews <- tidy_reviews %>% 
+  dplyr::anti_join(dplyr::filter(tidytext::stop_words, lexicon == "snowball"), by = "word") %>% 
+  dplyr::inner_join(bing_sentiments, by = "word") %>% 
+  dplyr::mutate(month = lubridate::floor_date(date, unit = "months"))
+
+review_sentiments <- tidy_reviews %>% 
+  dplyr::group_by(month) %>% 
+  dplyr::summarise(median_rating = median(rating),
+                   positive = length(sentiment[sentiment == "positive"]),
+                   negative = length(sentiment[sentiment == "negative"]),
+                   polarity = positive / negative)
+
+dplyr::left_join(tidy_reviews, review_sentiments, by = "month") %>% 
+  dplyr::mutate(polarity_rescaled = scales::rescale(polarity, to = c(1, 5))) %>% 
+  dplyr::filter(month > (dplyr::last(sort(unique(month))) - months(12))) %>%
+  ggplot() +
+  geom_line(aes(x = month, y = polarity_rescaled), colour = "#e28743", linewidth = 1.2, lineend = "round") +
+  geom_line(aes(x = month, y = median_rating), colour = "#063970", linewidth = 1.2, lineend = "round") +
+  theme_minimal() +
+  scale_y_continuous(name = "Score", limits = c(1, 5)) +
+  scale_x_date(name = "Month", date_breaks = "1 months", date_labels = "%b %y", minor_breaks = NULL) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_text(margin = margin(t = 10)),
+        axis.title.y = element_text(margin = margin(r = 10))) +
+  annotate(
+    geom = "curve", 
+    x = as.Date("2022-11-01"), 
+    y = 3.5, 
+    xend = as.Date("2022-10-10"), 
+    yend = 3, 
+    curvature = -.3, 
+    linewidth = 1.2, 
+    arrow = grid::arrow(angle = 20, type = "closed", length = grid::unit(2, "mm"))
+  ) +
+  patchwork::inset_element(
+    png::readPNG(file.path("images", "musk_head.png"), native = TRUE), 
+    0.7, 0.7, 0.95, 0.9, 
+    align_to = 'full'
+    ) + 
+  theme_void()
+  
 ```
 
-## Second
+## Data {.scrollable}
 
-<!--# beep -->
-
-::: incremental
--   I say
--   I said
+::: {.notes}
+Finally, if we look at some of the actual examples in the data here. Let's 
+focus in on examples that mention 'culture'.
+Basically, you see lamentations about how its changed since Musk's takeover.
 :::
 
-::: columns
-::: {.column .fragment width="50%"}
-Yoooo sup
+::: {style="font-size: 0.7em;"}
+```{r}
+dplyr::select(reviews, c(rating, text, date)) %>% 
+  reactable::reactable(
+    showPageInfo = FALSE, 
+    searchable = TRUE,
+    defaultPageSize = 500,
+    defaultSortOrder = "desc",
+    defaultSorted = "date",
+    defaultColDef = reactable::colDef(
+      align = "center",
+      headerStyle = list(
+        background = "#98ca45", 
+        color = "#ffffff"
+      )
+    ),
+    columns = list(
+      rating = reactable::colDef(maxWidth = 180),
+      date = reactable::colDef(maxWidth = 200)
+    ),
+    bordered = TRUE,
+    highlight = TRUE
+  )
+```
 :::
 
-::: {.column .fragment width="50%"}
-Suuuuuup dude
+## The employee view
+
+:::: columns
+
+::: {.column width="50%"}
+::: fragment
+- From
+  - "Amazing WLB, inclusive culture, and great employee-centric benefits"
 :::
+::: fragment
+- To
+  - "Crazy work hours and you’ll still be cut"
+:::
+:::
+
+::: {.column width="50%"}
+![](images/musk_head.png){height=4.75in}
+:::
+
+::::
+
+::: {.notes}
+We can see that people are generally unhappy, and also get some hints as to 
+why that might be. You'll get a better understanding of why that might be in 
+the next section...
+:::
+
+## {background-image="images/tom-henry.gif"}
+
+::: {.notes}
+... where Henry and Tom are gonna go over four discussion topics that 
+illustrate Elon Musk's approach to cultural change at Twitter
 :::
