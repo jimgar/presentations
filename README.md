@@ -1,2 +1,5 @@
-# presentations
-Presentation slides and code
+# Presentations
+
+Presentations for various things.
+
+Contains slides and code.
