@@ -3,8 +3,7 @@ format:
   revealjs:
     theme: [default, custom.scss]
     footer: "Data Team -- Culture Club -- Policy in Practice"
-    embed-resources: false
-    chalkboard: true
+    embed-resources: true
     link-external-icon: true
 ---
 
