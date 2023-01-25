@@ -1,5 +1,7 @@
 **Culture Club Twitter Case Study**
 
+*Views expressed in these slides are mine alone, and do not therefore represent Policy in Practice or any other employees at the company!*
+
 Slides for a session of Culture Club at Policy in Practice, Jan 2023.
 The data team presented on cultural change at Twitter since Elon Musk's takeover. 
 For my section I did a simple sentiment analysis on scraped employee review titles from teamblind.com and presented the results.
